@@ -58,6 +58,9 @@ buildIdentifier x xs
 
 buildIdHelper :: String -> (String, String)
 buildIdHelper "\n" = ("", "")
+buildIdHelper [x]
+ | validNext x = ([x], "") -- can probably get rid of some of this
+ | otherwise = ("", [x])
 buildIdHelper (x:xs)
  | validNext x = (x:a, b)
  | otherwise = ("", (x:xs))
@@ -65,12 +68,25 @@ buildIdHelper (x:xs)
        (a, b) = buildIdHelper xs -- format output for recursion
 
 
+-- remove whitespace from a token
+ignoreWS :: String -> String
+ignoreWS "\n" = ""
+ignoreWS (x:xs)
+ | isSpace x = ignoreWS xs
+ | otherwise = x: ignoreWS xs
 
 
+-- remove comments and contents
+ignoreCom :: String -> String
+ignoreCom ""  = ""
+ignoreCom [x] = [x]
+ignoreCom ('/':'/':xs) = waitNewLine xs
+ignoreCom ('/':'*':xs) = waitComment xs
 
-
-
-
+-- return text after a new line if any
+waitNewLine :: String -> String
+waitNewLine "" = ""
+waitNewLine ('\n':xs) = "to-do"
 
 
 

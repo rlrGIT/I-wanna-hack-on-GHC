@@ -50,8 +50,7 @@ selectionSort (x:xs) = a : selectionSort b -- merge the elements of the tuple ou
 selSort :: Ord a => [a] -> [a]
 selSort [] = []
 selSort (x:xs) = min ++ selSort xs
- where
-  min = [a | a <- (x:xs), isMin a] -- building isMin still, hopefully using some cool data structure tricks 
+
 
 
 -- insertion sort
@@ -90,6 +89,7 @@ mergeSort [x]    = [x]
 mergeSort x = merge (mergeSort a) (mergeSort b)
  where
  (a,b)           = split x
+
 
 
 -- quicksort, does not use list comprehension
