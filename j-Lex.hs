@@ -68,25 +68,32 @@ buildIdHelper (x:xs)
        (a, b) = buildIdHelper xs -- format output for recursion
 
 
--- remove whitespace from a token
+-- remove whitespace and comments from a string
 ignoreWS :: String -> String
 ignoreWS "\n" = ""
-ignoreWS (x:xs)
- | isSpace x = ignoreWS xs
- | otherwise = x: ignoreWS xs
+ignoreWS [x]  = [x]
 
+ignoreWS (x:y:"\n")   = (x:[y])
+ignoreWS ('/':'/':xs) = waitNewLine xs
+ignoreWS ('/':'*':xs) = waitComment xs
 
--- remove comments and contents
-ignoreCom :: String -> String
-ignoreCom ""  = ""
-ignoreCom [x] = [x]
-ignoreCom ('/':'/':xs) = waitNewLine xs
-ignoreCom ('/':'*':xs) = waitComment xs
+ignoreWS (x:y:zs)
+ | isSpace x = ignoreWS (y:zs)
+ | otherwise = x: ignoreWS (y:zs)
+
 
 -- return text after a new line if any
 waitNewLine :: String -> String
 waitNewLine "" = ""
-waitNewLine ('\n':xs) = "to-do"
+waitNewLine ('\n':xs) = xs
+waitNewLine (_:xs) = waitNewLine xs
+
+-- find the close comment token
+waitComment :: String -> String
+waitComment "" = ""
+waitComment ('*':'/':xs) = xs
+waitComment (_:xs) = waitComment xs
+
 
 
 
