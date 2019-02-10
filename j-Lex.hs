@@ -95,7 +95,94 @@ waitComment ('*':'/':xs) = xs
 waitComment (_:xs) = waitComment xs
 
 
+lexSepOrOp :: String -> (String, String) -- lex the first operator or separator 
+lexSepOrOp ""  = ("", "")
 
+lexSepOrOp (w:x:y:z:rest)
+ | (w:x:y:[z]) == ">>>=" = (">>>=", rest)
+ | otherwise = ("", (w:x:y:z:rest))
+
+lexSepOrOp (x:y:z:rest)
+ | (x:y:[z]) == "<<<" = ("<<<", rest)
+ | (x:y:[z]) == ">>>" = (">>>", rest)
+ | (x:y:[z]) == "..." = ("...", rest)
+ | (x:y:[z]) == ">>=" = (">>=", rest)
+ | (x:y:[z]) == "<<=" = ("<<=", rest)
+ | otherwise = ("", (x:y:z:rest))
+lexSepOrOp (x:y:zs)
+ | (x:[y]) == "->" = ("->", zs)
+ | (x:[y]) == "==" = ("==", zs)
+ | (x:[y]) == ">=" = (">=", zs)
+ | (x:[y]) == "<=" = ("<=", zs)
+ | (x:[y]) == "!=" = ("!=", zs)
+ | (x:[y]) == "&&" = ("&&", zs)
+ | (x:[y]) == "||" = ("||", zs)
+ | (x:[y]) == "++" = ("++", zs)
+ | (x:[y]) == "--" = ("--", zs)
+ | (x:[y]) == "+=" = ("+=", zs)
+ | (x:[y]) == "-=" = ("-=", zs)
+ | (x:[y]) == "*=" = ("*=", zs)
+ | (x:[y]) == "/=" = ("/=", zs)
+ | (x:[y]) == "&=" = ("&=", zs)
+ | (x:[y]) == "|=" = ("|=", zs)
+ | (x:[y]) == "^=" = ("^=", zs)
+ | (x:[y]) == "%=" = ("%=", zs)
+ | otherwise = ("", (x:y:zs))
+lexSepOrOp (x:xs)
+ | [x] == ":" = (";", xs)
+ | [x] == "~" = ("~", xs)
+ | [x] == "?" = ("?", xs)
+ | [x] == "(" = ("(", xs)
+ | [x] == ")" = (")", xs)
+ | [x] == "{" = ("{", xs)
+ | [x] == "}" = ("}", xs)
+ | [x] == "[" = ("[", xs)
+ | [x] == "]" = ("]", xs)
+ | [x] == ";" = (";", xs)
+ | [x] == "," = (",", xs)
+ | [x] == "." = (".", xs)
+ | [x] == "@" = ("@", xs)
+ | [x] == "+" = ("+", xs)
+ | [x] == "-" = ("-", xs)
+ | [x] == "*" = ("*", xs)
+ | [x] == "/" = ("/", xs)
+ | [x] == "&" = ("&", xs)
+ | [x] == "%" = ("%", xs)
+ | [x] == "^" = ("^", xs)
+ | [x] == "!" = ("!", xs)
+ | [x] == "=" = ("=", xs)
+ | [x] == ">" = (">", xs)
+ | [x] == "<" = ("<", xs)
+ | [x] == "|" = ("|", xs)
+ | otherwise = ("", (x:xs))
+lexSepOrOp [x] = ([x], "")
+
+
+
+-- getSepOrOp str
+--  | isQuad firstFour    = (firstFour, drop 4 str)
+--  | isTriple firstThree = (firstThree, drop 3 str)
+--  | isDouble firstTwo   = (firstTwo, drop 2 str)
+--  | isSingle first      = (first, tail str)
+--  | otherwise           = ("", str)
+--   where
+--    firstFour  = take 4 str
+--    firstThree = take 3 str 
+--    firstTwo   = take 2 str
+--    first      = take 1 str
+
+-- -- determine whether the string has an operator
+-- isSingle :: String -> Bool
+-- isSingle str = str `elem` [":", "~", "?", "(", ")", "{", "}", "[", "]", ";", ",", ".", "@", "+", "-", "*", "/", "&", "%", "^", "!", "=", ">", "<", "|", ":" ]
+
+-- isDouble :: String -> Bool
+-- isDouble str = str `elem` ["->", "==", ">=", "<=", "!=", "&&", "||", "++", "--", "+=", "-=", "*=", "/=", "&=", "|=", "^=", "%=", "<<", ">>"]
+
+-- isTriple :: String -> Bool
+-- isTriple str = str `elem` ["<<<", ">>>", "...", ">>=", "<<="]
+
+-- isQuad :: String -> Bool
+-- isQuad str = str == ">>>="
 
 
 
