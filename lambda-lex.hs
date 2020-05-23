@@ -1,7 +1,0 @@
--- read prefix notation,
--- lex tokens,
--- build a stack,
--- use stack to execute operations;
-    -- stack should us alpha and beta reductions, and eta conversions
-    -- should recognize infinite reductions
-    -- should show reduction steps with a given option
