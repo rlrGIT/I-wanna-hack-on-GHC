@@ -46,12 +46,6 @@ selectionSort (x:xs) = a : selectionSort b -- merge the elements of the tuple ou
  where
   (a,b)              = select x xs 
 
--- selection sort with list comprehension
-selSort :: Ord a => [a] -> [a]
-selSort [] = []
-selSort (x:xs) = min ++ selSort xs
-
-
 
 -- insertion sort
 insert :: Ord a => a -> [a] -> [a] -- given an value and a list of values, insert the new value in order into the list of values

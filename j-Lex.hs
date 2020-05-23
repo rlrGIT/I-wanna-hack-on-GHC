@@ -1,8 +1,7 @@
 {-
 Russell Rivera
 File: jLex.hs
-Desc: A Java Lexer 
-
+Desc: A Java Lexer
 -}
 
 module Main where
@@ -14,14 +13,14 @@ import System.FilePath
 
 main :: IO()
 main = do
- args <- getArgs -- returns a list of command line arguments 
+ args <- getArgs -- returns a list of command line arguments
  filename <- checkArgs args -- generates a monadic FilePath (type of string) with names that are OS dependent.
  input <- readFile filename -- read the file of names, bind to a variable.
  let result = lexJava input -- set result to the value(s) produced by lexJava
- writeFile (takeBaseName filename <.> "lex") (unlines result) 
+ writeFile (takeBaseName filename <.> "lex") (unlines result)
 
- -- Checks the command-line arguments. 
- -- Returns the filename to lex upon success. 
+ -- Checks the command-line arguments.
+ -- Returns the filename to lex upon success.
 checkArgs :: [String] -> IO FilePath
 checkArgs [path] = pure path
 checkArgs _other = do
@@ -31,17 +30,35 @@ checkArgs _other = do
 
 -- Takes Java code as input and returns a list of Strings.
 -- Each string in the output list is one Java token.
--- Comments and whitespace are discarded. 
+-- Comments and whitespace are discarded.
 lexJava :: String -> [String]
-lexJava s = [s]
+lexJava s = lexNext (findToken s)
 
+lexNext :: String -> [String]
+lexNext ""     = []
+lexNext (x:xs) = [firstToken] ++ lexJava restOfTokens
+ where
+   lexed = lexSingle x xs
+   firstToken = fst lexed
+   restOfTokens = snd lexed
+
+-- assemble the largest token possible
 lexSingle :: Char -> String -> (String, String)
-lexSingle char str = ([char], str)
+lexSingle char str
+ | validFirst char = buildIdentifier char str
+ | otherwise       = ("", (char:str))
+
+ -- findToken and comment helper functions
+findToken :: String -> String -- remove comments and white spaces from a string
+findToken "" = ""
+findToken (s:sx)
+  | isSpace s = findToken sx
+  | otherwise = rComment (s:sx)
 
 -- identify and create the longest identifier possible
 validFirst :: Char -> Bool
-validFirst c = isAlpha c 
-        || c == '_' 
+validFirst c = isAlpha c
+        || c == '_'
         || c == '$'
 
 validNext :: Char -> Bool
@@ -53,7 +70,7 @@ validNext c = isAlpha c
 buildIdentifier :: Char -> String -> (String, String)
 buildIdentifier '\n' "\n" = ("", "")
 buildIdentifier x xs
- | validFirst x = buildIdHelper (x:xs) 
+ | validFirst x = buildIdHelper (x:xs)
  | otherwise    = ("", (x:xs))
 
 buildIdHelper :: String -> (String, String)
@@ -67,20 +84,19 @@ buildIdHelper (x:xs)
     where
        (a, b) = buildIdHelper xs -- format output for recursion
 
-
--- remove whitespace and comments from a string
-ignoreWS :: String -> String
-ignoreWS "\n" = ""
-ignoreWS [x]  = [x]
-
-ignoreWS (x:y:"\n")   = (x:[y])
-ignoreWS ('/':'/':xs) = waitNewLine xs
-ignoreWS ('/':'*':xs) = waitComment xs
-
-ignoreWS (x:y:zs)
- | isSpace x = ignoreWS (y:zs)
- | otherwise = x: ignoreWS (y:zs)
-
+-- remove comments, newlines
+rComment :: String -> String
+rComment "" = ""
+rComment [x]
+ | x == '\n' = ""
+ | otherwise = [x]
+rComment (x:xs)
+ | x == '\n' = rComment xs
+rComment (x:y:xs)
+ | (x:y:xs) == ('/':'/':xs) = waitNewLine xs
+ | (x:y:xs) == ('/':'*':xs) = waitComment xs
+ | (x:y:xs) == (x:y:"\n")   = (x:[y])
+ | otherwise =  x: rComment (y:xs)
 
 -- return text after a new line if any
 waitNewLine :: String -> String
@@ -94,14 +110,11 @@ waitComment "" = ""
 waitComment ('*':'/':xs) = xs
 waitComment (_:xs) = waitComment xs
 
-
-lexSepOrOp :: String -> (String, String) -- lex the first operator or separator 
+lexSepOrOp :: String -> (String, String) -- lex the first operator or separator
 lexSepOrOp ""  = ("", "")
-
 lexSepOrOp (w:x:y:z:rest)
  | (w:x:y:[z]) == ">>>=" = (">>>=", rest)
  | otherwise = ("", (w:x:y:z:rest))
-
 lexSepOrOp (x:y:z:rest)
  | (x:y:[z]) == "<<<" = ("<<<", rest)
  | (x:y:[z]) == ">>>" = (">>>", rest)
@@ -155,53 +168,3 @@ lexSepOrOp (x:xs)
  | [x] == "<" = ("<", xs)
  | [x] == "|" = ("|", xs)
  | otherwise = ("", (x:xs))
-lexSepOrOp [x] = ([x], "")
-
-
-
--- getSepOrOp str
---  | isQuad firstFour    = (firstFour, drop 4 str)
---  | isTriple firstThree = (firstThree, drop 3 str)
---  | isDouble firstTwo   = (firstTwo, drop 2 str)
---  | isSingle first      = (first, tail str)
---  | otherwise           = ("", str)
---   where
---    firstFour  = take 4 str
---    firstThree = take 3 str 
---    firstTwo   = take 2 str
---    first      = take 1 str
-
--- -- determine whether the string has an operator
--- isSingle :: String -> Bool
--- isSingle str = str `elem` [":", "~", "?", "(", ")", "{", "}", "[", "]", ";", ",", ".", "@", "+", "-", "*", "/", "&", "%", "^", "!", "=", ">", "<", "|", ":" ]
-
--- isDouble :: String -> Bool
--- isDouble str = str `elem` ["->", "==", ">=", "<=", "!=", "&&", "||", "++", "--", "+=", "-=", "*=", "/=", "&=", "|=", "^=", "%=", "<<", ">>"]
-
--- isTriple :: String -> Bool
--- isTriple str = str `elem` ["<<<", ">>>", "...", ">>=", "<<="]
-
--- isQuad :: String -> Bool
--- isQuad str = str == ">>>="
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
